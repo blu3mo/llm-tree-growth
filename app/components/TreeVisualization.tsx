@@ -8,22 +8,24 @@ interface Node {
   title: string;
   abstract: string;
   parents: string[];
+  evaluation: number;
 }
 
 interface Props {
   data: { [id: string]: Node };
   onAddNode: (parents: Node[]) => void;
+  onUpdateEvaluation: (nodeId: string, evaluation: number) => void;
 }
 
-const TreeVisualization: React.FC<Props> = ({ data, onAddNode }) => {
+const TreeVisualization: React.FC<Props> = ({ data, onAddNode, onUpdateEvaluation }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   useEffect(() => {
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(data);
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(data, onUpdateEvaluation);
     setNodes(layoutedNodes);
     setEdges(layoutedEdges);
-  }, [data]);
+  }, [data, onUpdateEvaluation]);
 
   const onConnect = useCallback(
     (params) => setEdges((eds) => addEdge({ ...params, markerEnd: { type: MarkerType.ArrowClosed } }, eds)),
@@ -48,7 +50,7 @@ const TreeVisualization: React.FC<Props> = ({ data, onAddNode }) => {
   );
 };
 
-const getLayoutedElements = (data: { [id: string]: Node }) => {
+const getLayoutedElements = (data: { [id: string]: Node }, onUpdateEvaluation: (nodeId: string, evaluation: number) => void) => {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
   dagreGraph.setGraph({ rankdir: 'TB', ranker: 'network-simplex', marginy: 50, marginx: 20, align: 'DL' });
@@ -61,18 +63,24 @@ const getLayoutedElements = (data: { [id: string]: Node }) => {
       label: (
         <>
           <div className="text-base font-bold mb-1 leading-tight">{node.title}</div>
-          <div className="text-[8px] mb-2 h-40 overflow-y-auto leading-tight text-justify select-text">
+          <div className="text-[7px] mb-2 h-45 overflow-y-auto leading-tight text-justify select-text">
             {node.abstract}
           </div>
-          <button
-            className="bg-blue-500 text-white rounded px-2 py-1 text-sm"
-            onClick={() => onAddNode([node])}
-          >
-            Add Child
-          </button>
+          <div className="mt-2">
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={node.evaluation}
+              onChange={(e) => onUpdateEvaluation(node.id, parseFloat(e.target.value))}
+              className="w-full"
+            />
+          </div>
         </>
       ),
     },
+    dragHandle: '.does-not-exist', // disable dragging while avoiding grabbing the entire screen
     style: {
       width: nodeWidth,
       height: nodeHeight,
@@ -80,7 +88,7 @@ const getLayoutedElements = (data: { [id: string]: Node }) => {
       borderColor: node.parents.length === 0 ? '#A9B29F' : '#AFAFAF',
       borderWidth: 2,
     },
-    draggable: false,
+    //draggable: false,
   }));
 
   nodes.forEach(node => {

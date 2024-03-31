@@ -12,7 +12,7 @@ export async function POST(request: Request) {
 
   try {
     const response = await openai.createChatCompletion({
-      model: "gpt-4",
+      model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: prompt }],
     });
 
