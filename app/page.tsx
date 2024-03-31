@@ -1,22 +1,16 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import TreeVisualization from './components/TreeVisualization';
-import { useEdges } from 'reactflow';
 
 interface Node {
   id: string;
   title: string;
   abstract: string;
-  children: Node[];
+  parents: string[];
 }
 
 export default function Home() {
-  const [tree, setTree] = useState<Node>({
-    id: 'root',
-    title: 'Root',
-    abstract: 'Root node',
-    children: [],
-  });
+  const [dag, setDag] = useState<{ [id: string]: Node }>({});
   const [newSeedTitle, setNewSeedTitle] = useState('');
   const [newSeedAbstract, setNewSeedAbstract] = useState('');
 
@@ -27,82 +21,62 @@ export default function Home() {
       id: crypto.randomUUID(),
       title: newSeedTitle,
       abstract: newSeedAbstract,
-      children: [],
+      parents: [],
     };
 
-    // add seed node to tree root child
-    setTree((prevTree) => ({
-      ...prevTree,
-      children: [...prevTree.children, newSeedNode],
+    setDag((prevDag) => ({
+      ...prevDag,
+      [newSeedNode.id]: newSeedNode,
     }));
 
     setNewSeedTitle('');
     setNewSeedAbstract('');
   };
 
-  const handleAddChildNode = async (parentId: string) => {
-    const newNode = await generateChildNode(tree, parentId);
-    if (newNode) {
-      setTree((prevTree) => updateTree(prevTree, parentId, newNode));
-    }
+  const handleAddChildNode = async (parents: Node[]) => {
+    const newNode = await generateChildNode(parents);
+    setDag((prevDag) => updateDag(prevDag, newNode));
   };
 
-  const generateChildNode = async (tree: Node, parentId: string): Promise<Node | null> => {
-    if (tree.id === parentId) {
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ title: tree.title, abstract: tree.abstract }),
-      });
-      const data = await response.json();
-      const newNode: Node = {
-        id: crypto.randomUUID(),
-        title: data.title,
-        abstract: data.abstract,
-        children: [],
-      };
-      return newNode;
-    }
-    // recursively search in childs
-    for (const child of tree.children) {
-      const newNode = await generateChildNode(child, parentId);
-      if (newNode) {
-        return newNode;
-      }
-    }
-    return null;
+  const generateChildNode = async (parents: Node[]): Promise<Node> => {
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ parents }),
+    });
+    const data = await response.json();
+    const newNode: Node = {
+      id: crypto.randomUUID(),
+      title: data.title,
+      abstract: data.abstract,
+      parents: parents.map(parent => parent.id),
+    };
+    return newNode;
   };
 
-  const updateTree = (tree: Node, parentId: string, newNode: Node): Node => {
-    if (tree.id === parentId) {
-      return { ...tree, children: [...tree.children, newNode] };
-    }
-    if (tree.children === undefined) {
-      return tree;
-    }
+  const updateDag = (dag: { [id: string]: Node }, newNode: Node): { [id: string]: Node } => {
     return {
-      ...tree,
-      children: tree.children.map((child) => updateTree(child, parentId, newNode)),
+      ...dag,
+      [newNode.id]: newNode,
     };
   };
 
   const handleRandomGrowth = () => {
-    const allNodes = getAllNodes(tree).filter(node => node.id !== "root");
-    if (allNodes.length > 0) {
-      const randomIndex = Math.floor(Math.random() * allNodes.length);
-      const randomNodeId = allNodes[randomIndex].id;
-      handleAddChildNode(randomNodeId);
+    const allNodes = Object.values(dag);
+    if (allNodes.length > 1) {
+      const numParents = Math.min(3, allNodes.length);
+      const parents = [];
+      for (let i = 0; i < numParents; i++) {
+        let randomIndex;
+        do {
+          randomIndex = Math.floor(Math.random() * allNodes.length);
+        } while (parents.includes(allNodes[randomIndex]));
+        parents.push(allNodes[randomIndex]);
+      }
+      handleAddChildNode(parents);
     }
-  };
-
-  const getAllNodes = (node: Node): Node[] => {
-    let nodes: Node[] = [node];
-    for (const child of node.children) {
-      nodes = nodes.concat(getAllNodes(child));
-    }
-    return nodes;
   };
 
   return (
@@ -139,7 +113,7 @@ export default function Home() {
         </button>
       </div>
       <div className="h-screen">
-        <TreeVisualization data={tree} onAddNode={handleAddChildNode} />
+        <TreeVisualization data={dag} onAddNode={handleAddChildNode} />
       </div>
     </div>
   );

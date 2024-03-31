@@ -7,8 +7,8 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 export async function POST(request: Request) {
-  const { title, abstract } = await request.json();
-  const prompt = `Title: ${title}\nAbstract: ${abstract}\n\nGenerate a new research paper title and abstract. Get inspired by the research of the given paper, and include new contributions.:`;
+  const { parents } = await request.json();
+  const prompt = parents.map(({ title, abstract }) => `Title: ${title}\nAbstract: ${abstract}\n`).join('\n') + "\nGenerate a new research paper title and abstract. Get inspired by the research of the given papers, and include new contributions.:";
 
   try {
     const response = await openai.createChatCompletion({
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     });
 
     const generatedText = response.data.choices[0].message.content;
-    console.log(generatedText)
+    console.log(generatedText);
     const [newTitle, newAbstract] = generatedText.split('\n').filter(Boolean).map((line) => line.replace(/^(Title|Abstract):\s*/, ''));
     return NextResponse.json({ title: newTitle, abstract: newAbstract });
   } catch (error) {
