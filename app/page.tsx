@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import TreeVisualization from './components/TreeVisualization';
+import defaultTreeData from './defaultTreeData';
 
 interface Node {
   id: string;
@@ -10,7 +11,7 @@ interface Node {
 }
 
 export default function Home() {
-  const [dag, setDag] = useState<{ [id: string]: Node }>({});
+  const [dag, setDag] = useState<{ [id: string]: Node }>(defaultTreeData);
   const [newSeedTitle, setNewSeedTitle] = useState('');
   const [newSeedAbstract, setNewSeedAbstract] = useState('');
 

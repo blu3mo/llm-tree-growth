@@ -8,11 +8,11 @@ const openai = new OpenAIApi(configuration);
 
 export async function POST(request: Request) {
   const { parents } = await request.json();
-  const prompt = parents.map(({ title, abstract }) => `Title: ${title}\nAbstract: ${abstract}\n`).join('\n') + "\nGenerate a new research paper title and abstract. Get inspired by the research of the given papers, and include new contributions.:";
+  const prompt = parents.map(({ title, abstract }) => `Title: ${title}\nAbstract: ${abstract}\n`).join('\n') + "\nGenerate a new research paper title and abstract. Get inspiration from the research of the given papers, but make sure to clearly state your novelty and contributions.:";
 
   try {
     const response = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4",
       messages: [{ role: "user", content: prompt }],
     });
 

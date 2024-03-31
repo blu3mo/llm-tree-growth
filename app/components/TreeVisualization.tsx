@@ -38,6 +38,7 @@ const TreeVisualization: React.FC<Props> = ({ data, onAddNode }) => {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        minZoom={0.1}
         fitView
       >
         <Background />
@@ -50,8 +51,7 @@ const TreeVisualization: React.FC<Props> = ({ data, onAddNode }) => {
 const getLayoutedElements = (data: { [id: string]: Node }) => {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
-  dagreGraph.setGraph({ rankdir: 'TB', ranker: 'network-simplex', marginy: 50, marginx: 20, align: 'DL'});
-
+  dagreGraph.setGraph({ rankdir: 'TB', ranker: 'network-simplex', marginy: 50, marginx: 20, align: 'DL' });
   const nodeWidth = 300;
   const nodeHeight = 300;
 
@@ -61,7 +61,7 @@ const getLayoutedElements = (data: { [id: string]: Node }) => {
       label: (
         <>
           <div className="text-base font-bold mb-1 leading-tight">{node.title}</div>
-          <div className="text-[9px] mb-2 h-40 overflow-y-auto leading-tight text-justify">
+          <div className="text-[8px] mb-2 h-40 overflow-y-auto leading-tight text-justify select-text">
             {node.abstract}
           </div>
           <button
@@ -76,7 +76,11 @@ const getLayoutedElements = (data: { [id: string]: Node }) => {
     style: {
       width: nodeWidth,
       height: nodeHeight,
+      backgroundColor: node.parents.length === 0 ? '#EBF9DC' : '#FFFFFF',
+      borderColor: node.parents.length === 0 ? '#A9B29F' : '#AFAFAF',
+      borderWidth: 2,
     },
+    draggable: false,
   }));
 
   nodes.forEach(node => {
@@ -88,7 +92,6 @@ const getLayoutedElements = (data: { [id: string]: Node }) => {
       id: `${parentId}-${node.id}`,
       source: parentId,
       target: node.id,
-      //type: 'smoothstep',
       animated: true,
       style: {
         strokeWidth: 4,
@@ -106,7 +109,6 @@ const getLayoutedElements = (data: { [id: string]: Node }) => {
     const nodeWithPosition = dagreGraph.node(node.id);
     node.targetPosition = 'top';
     node.sourcePosition = 'bottom';
-
     node.position = {
       x: nodeWithPosition.x - nodeWidth / 2,
       y: nodeWithPosition.y - nodeHeight / 2,
