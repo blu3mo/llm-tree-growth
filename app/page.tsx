@@ -43,8 +43,6 @@ export default function Home() {
   const handleAddChildNode = async (parentId: string) => {
     const newNode = await generateChildNode(tree, parentId);
     if (newNode) {
-      // const updatedTree = updateTree(tree, parentId, newNode);
-      // setTree(updatedTree);
       setTree((prevTree) => updateTree(prevTree, parentId, newNode));
     }
   };
@@ -90,10 +88,26 @@ export default function Home() {
     };
   };
 
+  const handleRandomGrowth = () => {
+    const allNodes = getAllNodes(tree).filter(node => node.id !== "root");
+    if (allNodes.length > 0) {
+      const randomIndex = Math.floor(Math.random() * allNodes.length);
+      const randomNodeId = allNodes[randomIndex].id;
+      handleAddChildNode(randomNodeId);
+    }
+  };
+
+  const getAllNodes = (node: Node): Node[] => {
+    let nodes: Node[] = [node];
+    for (const child of node.children) {
+      nodes = nodes.concat(getAllNodes(child));
+    }
+    return nodes;
+  };
+
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Research Paper Generator</h1>
-      <div className="mb-4">
+      <div className="fixed top-4 right-4 z-10">
         <div className="mb-2">
           <input
             type="text"
@@ -113,15 +127,19 @@ export default function Home() {
         </div>
         <button
           onClick={handleAddSeedNode}
-          className="bg-blue-500 text-white rounded px-4 py-2"
+          className="bg-blue-500 text-white rounded px-4 py-2 mr-2"
         >
           Add Seed Node
         </button>
+        <button
+          onClick={handleRandomGrowth}
+          className="bg-green-500 text-white rounded px-4 py-2"
+        >
+          Randomly Grow One Node
+        </button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div key={tree.id} className="border border-gray-300 rounded p-4">
-          <TreeVisualization data={tree} onAddNode={handleAddChildNode} />
-        </div>
+      <div className="h-screen">
+        <TreeVisualization data={tree} onAddNode={handleAddChildNode} />
       </div>
     </div>
   );
