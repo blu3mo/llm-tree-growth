@@ -31,7 +31,7 @@ const TreeVisualization: React.FC<Props> = ({ data, onAddNode }) => {
   );
 
   return (
-    <div style={{ height: '1000px', width: '100%' }}>
+    <div className="w-full h-screen">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -49,8 +49,8 @@ const TreeVisualization: React.FC<Props> = ({ data, onAddNode }) => {
 
 const getNodesFromData = (data: Node, onAddNode: any): Node[] => {
   const nodes: Node[] = [];
-  const nodeWidth = 300; // Increased node width
-  const nodeHeight = 300; // Increased node height
+  const nodeWidth = 300;
+  const nodeHeight = 300;
   const horizontalSpace = 50;
   const verticalSpace = 50;
 
@@ -85,9 +85,16 @@ const getNodesFromData = (data: Node, onAddNode: any): Node[] => {
         data: {
           label: (
             <>
-              <div style={{ fontSize: '14px' }}>{node.title}</div>
-              <div style={{ fontSize: '8px' }}>{node.abstract}</div>
-              <button onClick={() => onAddNode(nodeId)}>Add Child</button>
+  <div className="text-base font-bold mb-1 leading-tight">{node.title}</div>
+  <div className="text-[9px] mb-2 h-40  overflow-y-auto leading-tight text-justify">
+    {node.abstract}
+  </div>
+  <button
+    className="bg-blue-500 text-white rounded px-2 py-1 text-sm"
+    onClick={() => onAddNode(nodeId)}
+  >
+    Add Child
+  </button>
             </>
           ),
         },
