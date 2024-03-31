@@ -9,11 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^1.1.1",
     "@types/d3": "^7.4.0",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
     "d3": "^7.8.2",
-    "dagre": "^0.8.5",
     "next": "^13.4.1",
     "openai": "^3.2.1",
     "react": "^18.2.0",

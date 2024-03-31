@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import ReactFlow, { Controls, Background, useNodesState, useEdgesState, addEdge, MarkerType } from 'reactflow';
+import dagre from "@dagrejs/dagre";
 import 'reactflow/dist/style.css';
 
 interface Node {
@@ -19,10 +20,9 @@ const TreeVisualization: React.FC<Props> = ({ data, onAddNode }) => {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   useEffect(() => {
-    const initialNodes = getNodesFromData(data);
-    const initialEdges = getEdgesFromData(data);
-    setNodes(initialNodes);
-    setEdges(initialEdges);
+    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(data);
+    setNodes(layoutedNodes);
+    setEdges(layoutedEdges);
   }, [data]);
 
   const onConnect = useCallback(
@@ -47,58 +47,73 @@ const TreeVisualization: React.FC<Props> = ({ data, onAddNode }) => {
   );
 };
 
-const getNodesFromData = (data: { [id: string]: Node }): Node[] => {
-  const nodes: Node[] = [];
+const getLayoutedElements = (data: { [id: string]: Node }) => {
+  const dagreGraph = new dagre.graphlib.Graph();
+  dagreGraph.setDefaultEdgeLabel(() => ({}));
+  dagreGraph.setGraph({ rankdir: 'TB', ranker: 'network-simplex', marginy: 50, marginx: 20, align: 'DL'});
+
   const nodeWidth = 300;
   const nodeHeight = 300;
-  const horizontalSpace = 50;
-  const verticalSpace = 50;
 
-  // Placeholder for node positioning (replace with a suitable layout algorithm)
-  Object.values(data).forEach((node, index) => {
-    nodes.push({
-      id: node.id,
-      data: {
-        label: (
-          <>
-            <div className="text-base font-bold mb-1 leading-tight">{node.title}</div>
-            <div className="text-[9px] mb-2 h-40 overflow-y-auto leading-tight text-justify">
-              {node.abstract}
-            </div>
-            <button
-              className="bg-blue-500 text-white rounded px-2 py-1 text-sm"
-              onClick={() => onAddNode([node])}
-            >
-              Add Child
-            </button>
-          </>
-        ),
-      },
+  const nodes = Object.values(data).map(node => ({
+    id: node.id,
+    data: {
+      label: (
+        <>
+          <div className="text-base font-bold mb-1 leading-tight">{node.title}</div>
+          <div className="text-[9px] mb-2 h-40 overflow-y-auto leading-tight text-justify">
+            {node.abstract}
+          </div>
+          <button
+            className="bg-blue-500 text-white rounded px-2 py-1 text-sm"
+            onClick={() => onAddNode([node])}
+          >
+            Add Child
+          </button>
+        </>
+      ),
+    },
+    style: {
+      width: nodeWidth,
+      height: nodeHeight,
+    },
+  }));
+
+  nodes.forEach(node => {
+    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+  });
+
+  const edges = Object.values(data).flatMap(node => {
+    return node.parents.map(parentId => ({
+      id: `${parentId}-${node.id}`,
+      source: parentId,
+      target: node.id,
+      //type: 'smoothstep',
+      animated: true,
       style: {
-        width: nodeWidth,
-        height: nodeHeight,
+        strokeWidth: 4,
       },
-      position: { x: index * (nodeWidth + horizontalSpace), y: 0 },
-    });
+    }));
   });
 
-  return nodes;
-};
-
-const getEdgesFromData = (data: { [id: string]: Node }): Edge[] => {
-  const edges: Edge[] = [];
-
-  Object.values(data).forEach(node => {
-    node.parents.forEach(parentId => {
-      edges.push({
-        id: `${parentId}-${node.id}`,
-        source: parentId,
-        target: node.id,
-      });
-    });
+  edges.forEach(edge => {
+    dagreGraph.setEdge(edge.source, edge.target);
   });
 
-  return edges;
+  dagre.layout(dagreGraph);
+
+  nodes.forEach(node => {
+    const nodeWithPosition = dagreGraph.node(node.id);
+    node.targetPosition = 'top';
+    node.sourcePosition = 'bottom';
+
+    node.position = {
+      x: nodeWithPosition.x - nodeWidth / 2,
+      y: nodeWithPosition.y - nodeHeight / 2,
+    };
+  });
+
+  return { nodes, edges };
 };
 
 export default TreeVisualization;
