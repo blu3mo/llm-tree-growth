@@ -99,7 +99,7 @@ const getLayoutedElements = (data: { [id: string]: Node }, onUpdateEvaluation: (
         height: nodeHeight,
         backgroundColor: node.parents.length === 0 ? '#EBF9DC' : '#FFFFFF',
         borderColor: node.parents.length === 0 ? '#A9B29F' : '#AFAFAF',
-        borderWidth: 2,
+        borderWidth: 4,
       },
     };
   });
@@ -115,7 +115,7 @@ const getLayoutedElements = (data: { [id: string]: Node }, onUpdateEvaluation: (
       target: node.id,
       animated: true,
       style: {
-        strokeWidth: 4,
+        strokeWidth: 6,
       },
     }));
   });
