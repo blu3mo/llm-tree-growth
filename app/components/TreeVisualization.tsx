@@ -49,7 +49,7 @@ const getLayoutedElements = (data: { [id: string]: Node }, onUpdateEvaluation: (
   dagreGraph.setDefaultEdgeLabel(() => ({}));
   dagreGraph.setGraph({ rankdir: 'TB', ranker: 'network-simplex', marginy: 50, marginx: 20, align: 'DL' });
   const nodeWidth = 300;
-  const nodeHeight = 400;
+  const nodeHeight = 300;
 
   const nodes = Object.values(data).map(node => {
     const numDescendants = countDescendants(data, node.id);
@@ -64,20 +64,21 @@ const getLayoutedElements = (data: { [id: string]: Node }, onUpdateEvaluation: (
       data: {
         label: (
           <>
-            <div className="text-base font-bold mb-1 leading-tight">{node.title}</div>
-            <div className="text-[7px] mb-2 h-40 overflow-y-auto leading-tight text-justify select-text font-mono">
-              {node.abstract}
+            <div className="h-52 overflow-y-auto">
+              <div className="text-base font-bold mb-1 leading-tight">{node.title}</div>
+              <div className="text-[7px] mb-2 overflow-y-auto leading-tight text-justify select-text">
+                {node.abstract}
+              </div>
             </div>
             <div className="mt-2 font-mono text-[10px]">
-              <p>ID: {node.id}</p>
-              <p>Evaluation: {node.evaluation.toFixed(2)}</p>
-              <p>Parents: {node.parents.map(parent => parent.substring(0, 4)).join(', ')}</p>
-              <p>Children: {node.children.map(child => child.substring(0, 4)).join(', ')}</p>
-              <p>Descendants: {numDescendants}</p>
-              <p>Sum Evaluations: {sumEvaluations.toFixed(2)}</p>
-              <p>Exploration Term: {explorationTerm.toFixed(2)}</p>
-              <p>Exploitation Term: {exploitationTerm.toFixed(2)}</p>
-              <p>UCT Score: {uctScore.toFixed(2)}</p>
+              <p>
+                <span>Evaluation: {node.evaluation.toFixed(2)}</span>
+                <span> | UCT: {uctScore.toFixed(2)}</span>
+              </p>
+              <p>
+                <span> Explore: {sumEvaluations.toFixed(2)} / {numDescendants} = {explorationTerm.toFixed(2)}</span>
+                <span> | Exploit: {exploitationTerm.toFixed(2)}</span>
+              </p>
             </div>
             <div className="mt-2">
               <input
