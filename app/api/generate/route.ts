@@ -10,6 +10,7 @@ const model = "gpt-3.5-turbo";
 async function generateContent(parents: any[], instruction: string) {
   const parentFormat = Object.keys(parents[0]).map(key => `${key}: ${parents[0][key]}`).join('\n');
   
+  console.log(instruction);
   const prompt = `
 ${parents.map(parent => Object.entries(parent).map(([key, value]) => `${key}: ${value}`).join('\n')).join('\n\n')}
 
@@ -39,10 +40,9 @@ async function evaluateContent(content: any, criteria: string) {
 ${contentFormat}
 
 # Task
-As a harsh reviewer, evaluate the generated content based on the following criteria:
-${criteria}
-
-Provide a critical, harsh yet valid evaluation comment and an evaluation score (0-100).
+As a harsh reviewer, evaluate the generated content.
+Provide a critical, harsh yet valid evaluation comment and an evaluation score (0-100), strictly following the criteria.
+Criteria: ${criteria}
 
 Return the response in the following JSON format:
 {
@@ -50,6 +50,8 @@ Return the response in the following JSON format:
   "score": int from 0 to 100. Make 50 the default average score.
 }
 `;
+
+  console.log(prompt);
 
   const response = await openai.createChatCompletion({
     model: model,
@@ -63,10 +65,10 @@ Return the response in the following JSON format:
 }
 
 export async function POST(request: Request) {
-  const { parents, criteria, contentType } = await request.json();
+  const { parents, criteria, instruction } = await request.json();
 
   try {
-    const generatedContent = await generateContent(parents, contentType);
+    const generatedContent = await generateContent(parents, instruction);
     const evaluation = await evaluateContent(generatedContent, criteria);
 
     return NextResponse.json({
