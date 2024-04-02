@@ -1,7 +1,7 @@
 // utils/treeUtils.ts
 import { Node } from '../Node';
 
-export const countDescendants = (dag: { [id: string]: Node }, nodeId: string, α: number = 0.7): number => {
+export const countDescendants = (dag: { [id: string]: Node }, nodeId: string, alpha: number = 0.7): number => {
   const node = dag[nodeId];
   if (!node) return 0;
 
@@ -11,7 +11,7 @@ export const countDescendants = (dag: { [id: string]: Node }, nodeId: string, α
   const dfs = (currentNodeId: string, depth: number) => {
     if (visitedNodes.has(currentNodeId)) return;
     visitedNodes.add(currentNodeId);
-    count += Math.pow(α, depth);
+    count += Math.pow(alpha, depth);
 
     const currentNode = dag[currentNodeId];
     if (!currentNode) return;
@@ -23,7 +23,7 @@ export const countDescendants = (dag: { [id: string]: Node }, nodeId: string, α
   return count;
 };
 
-export const sumDescendantsEvaluations = (dag: { [id: string]: Node }, nodeId: string, α: number = 0.7): number => {
+export const sumDescendantsEvaluations = (dag: { [id: string]: Node }, nodeId: string, alpha: number = 0.7): number => {
   const node = dag[nodeId];
   if (!node) return 0;
   let sum = 0;
@@ -36,7 +36,7 @@ export const sumDescendantsEvaluations = (dag: { [id: string]: Node }, nodeId: s
     const currentNode = dag[currentNodeId];
     if (!currentNode) return;
 
-    sum += currentNode.evaluation * Math.pow(α, depth);
+    sum += currentNode.evaluation * Math.pow(alpha, depth);
     currentNode.children.forEach(childId => dfs(childId, depth + 1));
   };
 

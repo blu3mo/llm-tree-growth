@@ -45,6 +45,10 @@ const TreeVisualization: React.FC<Props> = ({ data, onAddNode, onUpdateEvaluatio
 };
 
 const getLayoutedElements = (data: { [id: string]: Node }, onUpdateEvaluation: (nodeId: string, evaluation: number) => void) => {
+  if (data === undefined) {
+    return { nodes: [], edges: [] };
+  }
+  
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
   dagreGraph.setGraph({ rankdir: 'TB', ranker: 'network-simplex', marginy: 50, marginx: 20, align: 'DL' });
@@ -57,7 +61,7 @@ const getLayoutedElements = (data: { [id: string]: Node }, onUpdateEvaluation: (
     const exploitationTerm = sumEvaluations / (numDescendants || 1);
     const totalNodes = Object.keys(data).length;
     const explorationTerm = Math.sqrt((2 * Math.log(totalNodes)) / (numDescendants || 1));
-    const uctScore = exploitationTerm + 0.1 * explorationTerm;
+    const uctScore = exploitationTerm + 0.3 * explorationTerm;
 
     return {
       id: node.id,

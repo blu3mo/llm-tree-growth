@@ -7,14 +7,14 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 const model = "gpt-3.5-turbo";
 
-async function generateContent(parents: any[], contentType: string) {
+async function generateContent(parents: any[], instruction: string) {
   const parentFormat = Object.keys(parents[0]).map(key => `${key}: ${parents[0][key]}`).join('\n');
   
   const prompt = `
 ${parents.map(parent => Object.entries(parent).map(([key, value]) => `${key}: ${value}`).join('\n')).join('\n\n')}
 
 # Task
-Generate a new ${contentType} based on the provided examples. Get inspiration from the given content, but make sure to clearly state your novelty and contributions.
+${instruction}
 
 Return the response in the following format:
 ${parentFormat}

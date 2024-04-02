@@ -9,6 +9,8 @@ import { selectParentsByMCTS } from './utils/mctsUtils';
 import SeedNodeForm from './components/SeedNodeForm';
 import { useInterval } from './utils/useInterval';
 
+const PARENTS_FACTOR = 2;
+
 export default function Home() {
   const [dag, setDag] = useState<{ [id: string]: Node }>(defaultTreeData);
   const [showSeedForm, setShowSeedForm] = useState(false);
@@ -54,7 +56,7 @@ export default function Home() {
       setEvaluationData((prevData) => [...prevData, { nodeId: newNode.id, evaluation: newNode.evaluation }]);
     } catch (error) {
       console.error('Error generating child node:', error);
-      alert('No available parent candidates. Please add more seed nodes or evaluate existing nodes.');
+      alert('No available parent candidates. Please add more seed nodes.');
     }
   };
 
@@ -70,15 +72,16 @@ export default function Home() {
       throw new Error('No available parent candidates');
     }
 
-    const parents = selectParentsByMCTS(parentCandidates, 3);
+    const parents = selectParentsByMCTS(parentCandidates, PARENTS_FACTOR);
     const criteria = "Robotics-related are good. Non-robotics related are bad"//"Novelty, Interestingness, Realisticness";
+    const instruction = "Generate a new paper title and abstract based on the provided examples. Get inspiration from the given content, but make sure to clearly state your novelty and contributions."
 
     const response = await fetch('/api/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ parents, criteria }),
+      body: JSON.stringify({ parents, criteria, instruction }),
     });
     const data = await response.json();
     const newNode: Node = {
@@ -112,7 +115,7 @@ export default function Home() {
   return (
     <div className="mx-0 p-0 w-full">
       <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-10">
-        <div className="bg-white bg-opacity-80 rounded-full shadow-sm p-2 border-2 border-gray-200">
+        <div className="bg-white bg-opacity-80 rounded-full shadow-sm p-2 border-2 border-gray-200 backdrop-blur-md">
           <div className="flex items-center justify-center space-x-2">
             <button
               onClick={handleShowSeedForm}
@@ -130,7 +133,7 @@ export default function Home() {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              <span>Add Child Node</span>
+              <span>Grow One Child Node</span>
             </button>
             <button
               onClick={() => setIsAutoGenerating(!isAutoGenerating)}

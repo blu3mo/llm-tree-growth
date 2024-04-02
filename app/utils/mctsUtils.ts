@@ -5,7 +5,7 @@ const C = 0.1;
 
 export const selectParentsByMCTS = (nodes: (Node & { numDescendants: number; sumEvaluations: number })[], numParents: number): Node[] => {
   // Filter out nodes where they have parents and all parents only have one child
-  const filteredNodes = nodes.filter(node => !(node.parents.length > 0 && node.parents.every(parentId => nodes.find(parent => parent.id === parentId)?.children.length === 1)));
+  const filteredNodes = nodes.filter(node => !(node.parents.length > 0 && node.parents.every(parentId => nodes.find(parent => parent.id === parentId)?.children.length < 3)));
 
   const uctScores = filteredNodes.map((node) => {
     const exploitationTerm = node.sumEvaluations / (node.numDescendants || 1);
